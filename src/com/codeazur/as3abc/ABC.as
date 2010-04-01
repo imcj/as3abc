@@ -19,8 +19,7 @@ package com.codeazur.as3abc
 		
 		public var methods:Vector.<Method>;
 		public var metadata:Vector.<Metadata>;
-		public var instances:Vector.<Instance>;
-		public var classes:Vector.<ABCClass>;
+		public var types:Vector.<NominalType>;		
 		public var scripts:Vector.<Script>;
 				
 		public function ABC(data:ByteArray)
@@ -30,8 +29,7 @@ package com.codeazur.as3abc
 			
 			methods   = new Vector.<Method>();
 			metadata  = new Vector.<Metadata>();
-			instances = new Vector.<Instance>();
-			classes   = new Vector.<ABCClass>();
+			types     = new Vector.<NominalType>();
 			scripts   = new Vector.<Script>();
 			
 			if (data != null) {
@@ -44,7 +42,6 @@ package com.codeazur.as3abc
 			var abcData:ABCData = new ABCData();
 			data.position = 0;
 			data.readBytes(abcData, 0, data.length);
-			abcData.position = 0;
 			parse(abcData);
 		}
 		
@@ -107,30 +104,28 @@ package com.codeazur.as3abc
 		public function readInstances(data:ABCData):void
 		{
 			var i:int, len:int;
-			var instance:Instance;
+			var type:NominalType;
 			
 			len = data.readU32();	
 			
 			for (i = 0; i < len; i++) {
-				instance = new Instance();
-				instance.abc = this;
-				instance.parse(data, constantPool);
-				instances[i] = instance;
+				type = new NominalType();
+				type.abc = this;
+				type.parseInstance(data, constantPool);
+				types[i] = type;
 			}
 		}
 		
 		public function readClasses(data:ABCData):void
 		{
 			var i:int, len:int;
-			var clazz:ABCClass;
+			var type:NominalType;
 			
-			len = instances.length;	
+			len = types.length;	
 			
 			for (i = 0; i < len; i++) {
-				clazz = new ABCClass();
-				clazz.abc = this;
-				clazz.parse(data, constantPool);
-				classes[i] = clazz;
+				type = types[i];
+				type.parseClass(data, constantPool);
 			}
 		}
 		
@@ -196,8 +191,7 @@ package com.codeazur.as3abc
 				constantPool.toString(indent + 4) + "\n" +				
 				StringUtils.repeat(indent + 4) + "Methods (" + methods.length + ")\n" +
 				StringUtils.repeat(indent + 4) + "Metadata (" + metadata.length + ")\n" +
-				StringUtils.repeat(indent + 4) + "Instances (" + instances.length + ")\n" +
-				StringUtils.repeat(indent + 4) + "Classes (" + classes.length + ")\n" +
+				StringUtils.repeat(indent + 4) + "Types (" + types.length + ")\n" +
 				StringUtils.repeat(indent + 4) + "Scripts (" + scripts.length + ")\n"
 			return str;
 		}

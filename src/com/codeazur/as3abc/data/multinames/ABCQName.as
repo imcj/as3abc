@@ -26,7 +26,7 @@ package com.codeazur.as3abc.data.multinames
 			if (abcNamespace) {
 				var namespaceStr:String = abcNamespace.toString();
 				if (namespaceStr) {
-					return abcNamespace + ':' + name;
+					return abcNamespace + '::' + name;
 				}
 				else {
 					return name;

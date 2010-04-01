@@ -13,7 +13,7 @@ package com.codeazur.as3abc.data.traits
 		
 		public var traits:Vector.<ITrait>;
 		
-		public function readTraits(data:ABCData):void
+		public function readTraits(data:ABCData):Vector.<ITrait>
 		{
 			var i:int, traitCount:int;
 			var name:ABCQName;
@@ -47,6 +47,7 @@ package com.codeazur.as3abc.data.traits
 				}
 			}
 			
+			return traits;
 		}
 	}
 }
