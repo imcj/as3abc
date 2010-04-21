@@ -8,7 +8,8 @@ package com.codeazur.as3abc.data.multinames
 	// This multiname type doesn't appear to be documented in Adobe's
 	// ActionScript Virtual Machine 2 (AVM2) Overview PDF file.  It is,
 	// however, described in the Tamarin sources and also in Joa Ebert's
-	// Apparat source code.
+	// Apparat source code.  This is needed to properly handle generic
+	// vectors in FP10.
 	
 	public class TypeName extends AbstractMultiname
 	{

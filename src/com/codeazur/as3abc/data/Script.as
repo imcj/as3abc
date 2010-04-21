@@ -1,6 +1,5 @@
 package com.codeazur.as3abc.data
 {
-	import com.codeazur.as3abc.ABC;
 	import com.codeazur.as3abc.ABCData;
 	import com.codeazur.as3abc.data.traits.AbstractTraitOwner;
 	
@@ -10,13 +9,12 @@ package com.codeazur.as3abc.data
 
 		public var initializer:Method;
 
-		public var instance:Instance;
+		public var type:NominalType;
 
 		public function parse(data:ABCData, constantPool:ConstantPool):void
 		{
 			initializerIndex = data.readU32();	
-			initializer = abc.methods[initializerIndex];
-			
+			initializer = abc.methods[initializerIndex];	
 			readTraits(data);
 		}
 			

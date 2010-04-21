@@ -8,6 +8,6 @@ package com.codeazur.as3abc.data
 		public var to:int;
 		public var target:int;
 		public var exceptionType:IMultiname;
-		public var variableName:String;
+		public var variableName:IMultiname;
 	}
 }

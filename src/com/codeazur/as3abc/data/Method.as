@@ -21,10 +21,6 @@ package com.codeazur.as3abc.data
 		public var hasParameterNames:Boolean;
 		public var body:MethodBody;
 				
-		public function Method()
-		{
-		}
-
 		public function parse(data:ABCData, constantPool:ConstantPool):void
 		{
 			var i:int;

@@ -3,9 +3,8 @@ package com.codeazur.as3abc.data
 	import __AS3__.vec.Vector;
 	
 	import com.codeazur.as3abc.ABCData;
+	import com.codeazur.as3abc.data.bytecode.ActionBlock;
 	import com.codeazur.as3abc.data.traits.AbstractTraitOwner;
-	
-	import flash.utils.ByteArray;
 	
 	public class MethodBody extends AbstractTraitOwner
 	{
@@ -15,7 +14,8 @@ package com.codeazur.as3abc.data
 		public var localCount:int;
 		public var initScopeDepth:int;
 		public var maxScopeDepth:int;
-		public var code:ByteArray;		// For now...
+		public var block:ActionBlock;
+		public var code:ABCData;		// For now...
 		public var exceptions:Vector.<ExceptionHandler>;
 		
 		public function parse(data:ABCData):void
@@ -40,25 +40,32 @@ package com.codeazur.as3abc.data
 			var codeLength:int;
 			codeLength = data.readU32();
 					
-			// TODO: Parse the actual opcodes rather than just a raw copy.
-			code = new ByteArray();
-			data.readBytes(code, 0, codeLength);		
+			code = new ABCData();
+			data.readBytes(code, 0, codeLength);
+			code.position = 0;
+			
+			block = new ActionBlock();
+			block.abc = abc;
+			block.methodBody = this;
+			block.parse(code, abc.constantPool);
+
 		}
 		
 		public function readExceptions(data:ABCData):void
 		{
 			var i:int, exceptionCount:int;
 			var exceptionHandler:ExceptionHandler;
+			var it:int;
 			
 			exceptions = new Vector.<ExceptionHandler>();
-			exceptionCount = data.readU32();
+			exceptionCount = data.readU30();
 			for (i = 0; i < exceptionCount; i++) {
 				exceptionHandler = new ExceptionHandler();
-				exceptionHandler.from   = data.readU32();
-				exceptionHandler.to     = data.readU32();
-				exceptionHandler.target = data.readU32();
-				exceptionHandler.exceptionType = abc.constantPool.multinames[data.readU32()];
-				exceptionHandler.variableName = abc.constantPool.strings[data.readU32()];
+				exceptionHandler.from   = data.readU30();
+				exceptionHandler.to     = data.readU30();
+				exceptionHandler.target = data.readU30();
+				exceptionHandler.exceptionType = abc.constantPool.multinames[data.readU30()];
+				exceptionHandler.variableName = abc.constantPool.multinames[data.readU30()];
 				exceptions[i] = exceptionHandler;
 			}			
 		}

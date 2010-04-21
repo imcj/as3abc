@@ -23,6 +23,11 @@ package com.codeazur.as3abc
 			throw new Error("writeS24() not yet implemented.");
 		}
 		
+		public function readU30():int
+		{
+			return int( readU32() & 0x3fffffff );
+		}
+		
 		public function readU32():int
 		{
 			var result:int = readUnsignedByte();
