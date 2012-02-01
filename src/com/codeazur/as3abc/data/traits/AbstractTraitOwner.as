@@ -45,6 +45,8 @@ package com.codeazur.as3abc.data.traits
 				if (hasMetadata) {
 					trait.parseMetadata(data);
 				}
+				
+				traits.push ( trait );
 			}
 			
 			return traits;

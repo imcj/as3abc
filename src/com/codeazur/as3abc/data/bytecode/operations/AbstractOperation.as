@@ -14,6 +14,7 @@ package com.codeazur.as3abc.data.bytecode.operations
 		
 		public var code:int;
 		public var block:ActionBlock;
+		public var _name : String;
 		
 		// Debug
 		public var position:int;
@@ -21,6 +22,7 @@ package com.codeazur.as3abc.data.bytecode.operations
 		public function AbstractOperation(code:int)
 		{
 			this.code = code;
+			_name = opNames[code];
 		}
 		
 		public function accept(context:ABC, visitor:IABCVisitor):void
@@ -31,6 +33,10 @@ package com.codeazur.as3abc.data.bytecode.operations
 		public function readOperands(bytes:ABCData):void
 		{
 			throw new Error("Implementations override this method.");
+		}
+		
+		public function get name () : String {
+			return _name;
 		}
 
 		public function toString():String

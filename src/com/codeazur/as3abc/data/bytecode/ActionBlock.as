@@ -41,6 +41,7 @@ package com.codeazur.as3abc.data.bytecode
 				operation.position = position;
 				operation.readOperands(data);
 				
+				operations.push ( operation );
 			}
 		}
 
