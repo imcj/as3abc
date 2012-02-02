@@ -21,6 +21,8 @@ package com.codeazur.as3abc
 		public var metadata:Vector.<Metadata>;
 		public var types:Vector.<NominalType>;		
 		public var scripts:Vector.<Script>;
+		
+		private var _abcData : ABCData;
 				
 		public function ABC(data:ByteArray)
 		{
@@ -39,10 +41,10 @@ package com.codeazur.as3abc
 	
 		public function loadBytes(data:ByteArray):void
 		{
-			var abcData:ABCData = new ABCData();
+			_abcData = new ABCData();
 			data.position = 0;
-			data.readBytes(abcData, 0, data.length);
-			parse(abcData);
+			data.readBytes(_abcData, 0, data.length);
+			parse(_abcData);
 		}
 		
 		public function parse(data:ABCData):void
@@ -155,6 +157,10 @@ package com.codeazur.as3abc
 				methodBody.abc = this;
 				methodBody.parse(data);
 			}
+		}
+		
+		public function get abcData () : ABCData {
+			return _abcData;
 		}
 		
 		public function dumpMethods(indent:uint = 0):String {

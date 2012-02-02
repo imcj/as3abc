@@ -6,6 +6,7 @@ package com.codeazur.as3abc.data.multinames
 	public class RTQName extends AbstractMultiname
 	{
 		public var name:String;
+		private var _nameIndex : int;
 		
 		public function RTQName()
 		{
@@ -15,8 +16,12 @@ package com.codeazur.as3abc.data.multinames
 		override public function parse(data:ABCData, constantPool:ConstantPool):void
 		{
 			// TODO: Trap errors dereferencing from bad constant pool indices
-			name = constantPool.strings[data.readU32()];
+			_nameIndex = data.readU32();
+			name = constantPool.strings[_nameIndex];
 		}
 		
+		override public function publish ( data : ABCData ) : void {
+			data.writeU32 ( _nameIndex );
+		}
 	}
 }

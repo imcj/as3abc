@@ -6,6 +6,7 @@ package com.codeazur.as3abc.data.multinames
 	public interface IMultiname
 	{
 		function parse(data:ABCData, constantPool:ConstantPool):void;
+		function publish ( data : ABCData ) : void;
 		function toString():String;
 	}
 }

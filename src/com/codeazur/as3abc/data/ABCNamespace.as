@@ -1,5 +1,7 @@
 package com.codeazur.as3abc.data
 {
+	import com.codeazur.as3abc.ABCData;
+
 	public class ABCNamespace
 	{
 		public static const NAMESPACE:int = 0x08;
@@ -12,11 +14,18 @@ package com.codeazur.as3abc.data
 				
 		public var kind:int;
 		public var name:String;
+		public var index : uint;
 		
-		public function ABCNamespace(kind:int, name:String) 
+		public function ABCNamespace(kind:int, name:String, index : uint = 0) 
 		{
 			this.kind = kind;
 			this.name = name;
+			this.index = index;
+		}
+		
+		public function publish ( data : ABCData ) : void {
+			data.writeByte ( kind );
+			data.writeU32 ( index );
 		}
 
 		public function toString():String {

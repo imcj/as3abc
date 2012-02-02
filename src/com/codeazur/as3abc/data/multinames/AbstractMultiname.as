@@ -14,6 +14,10 @@ package com.codeazur.as3abc.data.multinames
 		{
 			throw new Error("AbstractMultiname's parse method must be overridden.");
 		}
+		
+		public function publish ( data : ABCData ) : void {
+			throw new Error ( "AbstractMultiname's publish method must be overridden. 照抄上面的。" );
+		}
 
 		public function toString():String {
 			return "[AbstractMultiname]";

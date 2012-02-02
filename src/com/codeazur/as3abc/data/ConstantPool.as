@@ -2,6 +2,8 @@ package com.codeazur.as3abc.data
 {
 	import __AS3__.vec.Vector;
 	
+	import avmplus.getQualifiedClassName;
+	
 	import com.codeazur.as3abc.ABC;
 	import com.codeazur.as3abc.ABCData;
 	import com.codeazur.as3abc.data.multinames.ABCQName;
@@ -33,6 +35,11 @@ package com.codeazur.as3abc.data
 		public var namespaceSets:Vector.<Vector.<ABCNamespace>>;
 		public var multinames:Vector.<IMultiname>;
 		
+		public var position : int;
+		public var endPosition : int;
+		
+		private var ns : Array = new Array();
+		
 		public function ConstantPool()
 		{
 			ints = new Vector.<int>();
@@ -46,6 +53,7 @@ package com.codeazur.as3abc.data
 
 		public function parse(data:ABCData):void
 		{
+			position = data.position;
 			readInts(data);
 			readUints(data);
 			readDoubles(data);
@@ -53,6 +61,7 @@ package com.codeazur.as3abc.data
 			readNamespaces(data);
 			readNamespaceSets(data);
 			readMultinames(data);
+			endPosition = data.position;
 		}
 
 		protected function readInts(data:ABCData):void {
@@ -100,7 +109,8 @@ package com.codeazur.as3abc.data
 		}
 		
 		protected function readNamespaces(data:ABCData):void {
-			var i:uint, len:uint;
+//			trace ( "Namespaces begin:" + data.position );
+			var i:uint, len:uint, kind:int, index:uint;
 			len = data.readU32();
 			
 			if (namespaces.length == 0)
@@ -108,8 +118,11 @@ package com.codeazur.as3abc.data
 				
 			for (i = 1; i < len; i++) {
 				// TODO: Trap errors on bad data on string index
-				namespaces[i] = new ABCNamespace(data.readByte(), strings[data.readU32()]);
+				kind = data.readByte ();
+				index = data.readU32();
+				namespaces[i] = new ABCNamespace(kind, strings[index], index );
 			}
+//			trace ( "Namespaces end:" + (data.position - 1) );
 		}
 		
 		protected function readNamespaceSets(data:ABCData):void {
@@ -123,9 +136,13 @@ package com.codeazur.as3abc.data
 			for (i = 1; i < ilen; i++) {
 				namespaceSet = namespaceSets[i] = new Vector.<ABCNamespace>();
 				jlen = data.readU32();
+				ns[i] = new Array ();
 				for (j = 0; j < jlen; j++) {
 					// TODO: Trap errors on bad data on namespace index
-					namespaceSet[j] = namespaces[data.readU32()];
+//					trace ( "NamespaceSets" + data.position );
+					var index : int = data.readU32();
+					ns[i].push ( index );
+					namespaceSet[j] = namespaces[index];
 				} 
 			}
 		}
@@ -134,7 +151,7 @@ package com.codeazur.as3abc.data
 			var i:uint, len:uint;
 			var multiname:IMultiname;
 			len = data.readU32();
-			
+			trace ( "Multinames length:" + len );
 			if (multinames.length == 0)
 				multinames[0] = EMPTY_MULTINAME;
 			
@@ -143,6 +160,115 @@ package com.codeazur.as3abc.data
 				multiname.parse(data, this);
 				multinames[i] = multiname;
 			}
+		}
+		
+		public function publish ( data : ABCData ) : void {
+
+			writeInts ( data );
+			writeUints(data);
+			writeDoubles(data);
+			writeStrings(data);
+			writeNamespaces(data);
+			writeNamespaceSets(data);
+			writeMultinames(data);
+		}
+		
+		protected function writeInts ( data : ABCData ) : void {
+			var len : int = ints.length;
+			var i : int = 1;
+			data.writeU32 ( len );
+			for ( i; i < len; i++ )
+				data.writeU32 ( ints[i] )
+		}
+		
+		protected function writeUints ( data : ABCData ) : void {
+			var len : int = uints.length;
+			var i : int = 1;
+			data.writeU32 ( len == 1 ? 0 : len );
+			for ( i; i < len; i++ )
+				data.writeU32 ( uints[i] )
+		}
+		
+		protected function writeDoubles ( data : ABCData ) : void {
+			var len : int = doubles.length;
+			var i : int = 1;
+			data.writeU32 ( len );
+			for ( i; i < len; i++ )
+				data.writeDouble ( doubles[i] )
+		}
+		
+		protected function writeStrings ( data : ABCData ) : void {
+			var len : int = strings.length;
+			var i : int = 1;
+			var string : String;
+			data.writeU32 ( len );
+			for ( i; i < len; i++ ) {
+				string = strings[i];
+				data.writeU32 ( string.length );
+				data.writeUTFBytes ( string );
+			}
+		}
+		
+		protected function writeNamespaces ( data : ABCData ) : void {
+			var len : int = namespaces.length;
+			var i : int = 1;
+			data.writeU32 ( len );
+			for ( i; i < len; i ++ )
+				namespaces[i].publish ( data );
+		}
+		
+		protected function writeNamespaceSets ( data : ABCData ) : void {
+//			function findIndex ( namespace : ABCNamespace ) : int {
+//				var i : int = 1, len : int = namespaces.length, found : int;
+//				for ( i; i < len; i++ )
+//					if ( namespace == namespaces[i] )
+//						found = i;
+//				
+//				return found;
+//			}
+			var i : int = 1, len : int = namespaceSets.length;
+			var j : int, ns_len:int ;
+			data.writeU32 ( len );
+			for ( i; i < len; i++ ) {
+				ns_len = namespaceSets[i].length;
+				data.writeU32 ( ns_len );
+				for ( j = 0; j < ns_len; j++ ) {
+					data.writeU32 ( ns[i][j] );
+				}
+			}
+		}
+		
+		protected function writeMultinames ( data : ABCData ) : void {
+			trace ( "Multinames position:" + data.position );
+			var len : int = multinames.length;
+			var multiname : IMultiname;
+			var code : int;
+			var codes : Object = new Object ();
+			codes["com.codeazur.as3abc.data.multinames::ABCQName"]    = 0x07;
+			codes["com.codeazur.as3abc.data.multinames::QNameA"]      = 0x0D;
+			codes["com.codeazur.as3abc.data.multinames::RTQName"]     = 0x0F;
+			codes["com.codeazur.as3abc.data.multinames::RTQNameA"]    = 0x10;
+			codes["com.codeazur.as3abc.data.multinames::RTQNameL"]    = 0x11;
+			codes["com.codeazur.as3abc.data.multinames::RTQNameLA"]   = 0x12;
+			codes["com.codeazur.as3abc.data.multinames::Multiname"]   = 0x09;
+			codes["com.codeazur.as3abc.data.multinames::MultinameA"]  = 0x0E;
+			codes["com.codeazur.as3abc.data.multinames::MultinameL"]  = 0x1B;
+			codes["com.codeazur.as3abc.data.multinames::MultinameLA"] = 0x1C;
+			codes["com.codeazur.as3abc.data.multinames::TypeName"] = 0x1D;
+			
+			data.writeU32 ( len );
+			for ( var i : int = 1; i < len; i++ ) {
+				multiname = multinames[i];
+				code = codes[getQualifiedClassName(multiname)];
+				data.writeByte ( code );
+				multiname.publish ( data );
+				
+				if ( i == 28 ) {
+					trace ( "BUOK" );
+				}
+				trace ( i, data.position );
+			}
+			trace ( "Multinames end position:" + data.position );
 		}
 		
 		public function getConstantValue(type:int, index:int):Object
