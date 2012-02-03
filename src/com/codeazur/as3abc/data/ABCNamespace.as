@@ -14,18 +14,37 @@ package com.codeazur.as3abc.data
 				
 		public var kind:int;
 		public var name:String;
-		public var index : uint;
 		
-		public function ABCNamespace(kind:int, name:String, index : uint = 0) 
+		private var _u32name : int;
+		private var _data : ABCData;
+		
+		public function ABCNamespace(kind:int, name:String) 
 		{
+			_data = new ABCData ();
 			this.kind = kind;
 			this.name = name;
-			this.index = index;
+		}
+		
+		protected function get data () : ABCData {
+			return _data;
+		}
+		
+		static public function create ( data : ABCData, pool : ConstantPool ) : ABCNamespace {
+			var ns : ABCNamespace;
+			var kind : int, _u32name : int, name : String;
+			var begin : int, end : int;
+			begin = data.position;
+			kind = data.readByte ();
+			_u32name = data.readU32 ();
+			end = data.position;
+			name = pool.strings[_u32name];
+			ns = new ABCNamespace ( kind, name );
+			ns.data.writeBytes ( data, begin, end - begin );
+			return ns;
 		}
 		
 		public function publish ( data : ABCData ) : void {
-			data.writeByte ( kind );
-			data.writeU32 ( index );
+			data.writeBytes ( _data );
 		}
 
 		public function toString():String {

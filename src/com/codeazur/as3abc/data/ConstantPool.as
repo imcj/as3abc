@@ -109,20 +109,14 @@ package com.codeazur.as3abc.data
 		}
 		
 		protected function readNamespaces(data:ABCData):void {
-//			trace ( "Namespaces begin:" + data.position );
 			var i:uint, len:uint, kind:int, index:uint;
 			len = data.readU32();
 			
 			if (namespaces.length == 0)
 				namespaces[0] = PUBLIC_NAMESPACE;
 				
-			for (i = 1; i < len; i++) {
-				// TODO: Trap errors on bad data on string index
-				kind = data.readByte ();
-				index = data.readU32();
-				namespaces[i] = new ABCNamespace(kind, strings[index], index );
-			}
-//			trace ( "Namespaces end:" + (data.position - 1) );
+			for (i = 1; i < len; i++)
+				namespaces[i] = ABCNamespace.create ( data, this );
 		}
 		
 		protected function readNamespaceSets(data:ABCData):void {
@@ -139,7 +133,6 @@ package com.codeazur.as3abc.data
 				ns[i] = new Array ();
 				for (j = 0; j < jlen; j++) {
 					// TODO: Trap errors on bad data on namespace index
-//					trace ( "NamespaceSets" + data.position );
 					var index : int = data.readU32();
 					ns[i].push ( index );
 					namespaceSet[j] = namespaces[index];
@@ -151,7 +144,6 @@ package com.codeazur.as3abc.data
 			var i:uint, len:uint;
 			var multiname:IMultiname;
 			len = data.readU32();
-			trace ( "Multinames length:" + len );
 			if (multinames.length == 0)
 				multinames[0] = EMPTY_MULTINAME;
 			
@@ -218,14 +210,6 @@ package com.codeazur.as3abc.data
 		}
 		
 		protected function writeNamespaceSets ( data : ABCData ) : void {
-//			function findIndex ( namespace : ABCNamespace ) : int {
-//				var i : int = 1, len : int = namespaces.length, found : int;
-//				for ( i; i < len; i++ )
-//					if ( namespace == namespaces[i] )
-//						found = i;
-//				
-//				return found;
-//			}
 			var i : int = 1, len : int = namespaceSets.length;
 			var j : int, ns_len:int ;
 			data.writeU32 ( len );
@@ -238,11 +222,22 @@ package com.codeazur.as3abc.data
 			}
 		}
 		
+		
 		protected function writeMultinames ( data : ABCData ) : void {
-			trace ( "Multinames position:" + data.position );
 			var len : int = multinames.length;
 			var multiname : IMultiname;
 			var code : int;
+			
+			data.writeU32 ( len );
+			for ( var i : int = 1; i < len; i++ ) {
+				multiname = multinames[i];
+				code = getKindByClass(multiname);
+				data.writeByte ( code );
+				multiname.publish ( data );
+			}
+		}
+		
+		public function getKindByClass ( obj : * ) : int {
 			var codes : Object = new Object ();
 			codes["com.codeazur.as3abc.data.multinames::ABCQName"]    = 0x07;
 			codes["com.codeazur.as3abc.data.multinames::QNameA"]      = 0x0D;
@@ -254,21 +249,9 @@ package com.codeazur.as3abc.data
 			codes["com.codeazur.as3abc.data.multinames::MultinameA"]  = 0x0E;
 			codes["com.codeazur.as3abc.data.multinames::MultinameL"]  = 0x1B;
 			codes["com.codeazur.as3abc.data.multinames::MultinameLA"] = 0x1C;
-			codes["com.codeazur.as3abc.data.multinames::TypeName"] = 0x1D;
+			codes["com.codeazur.as3abc.data.multinames::TypeName"]    = 0x1D;
 			
-			data.writeU32 ( len );
-			for ( var i : int = 1; i < len; i++ ) {
-				multiname = multinames[i];
-				code = codes[getQualifiedClassName(multiname)];
-				data.writeByte ( code );
-				multiname.publish ( data );
-				
-				if ( i == 28 ) {
-					trace ( "BUOK" );
-				}
-				trace ( i, data.position );
-			}
-			trace ( "Multinames end position:" + data.position );
+			return codes[getQualifiedClassName(obj)];
 		}
 		
 		public function getConstantValue(type:int, index:int):Object

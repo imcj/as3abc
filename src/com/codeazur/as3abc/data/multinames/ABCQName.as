@@ -9,26 +9,34 @@ package com.codeazur.as3abc.data.multinames
 		public var abcNamespace:ABCNamespace;
 		public var name:String;
 		
-		private var _abcNamespaceIndex : int;
-		private var _abcNameIndex : int;
+		private var _data : ABCData = new ABCData ();
 		
 		public function ABCQName()
 		{
 			super();
 		}
+		
+		protected function get data () : ABCData {
+			return _data;
+		}
 
 		override public function parse(data:ABCData, constantPool:ConstantPool):void
 		{
 			// TODO: Trap errors dereferencing from bad constant pool indices
+			var begin : int, end : int;
+			var _abcNamespaceIndex : int;
+			var _abcNameIndex : int;
+			begin = data.position;
 			_abcNamespaceIndex = data.readU32 ();
 			_abcNameIndex = data.readU32 ();
+			end= data.position;
+			this.data.writeBytes ( data, begin, end - begin );
 			abcNamespace = constantPool.namespaces[_abcNamespaceIndex];
 			name = constantPool.strings[_abcNameIndex];
 		}
 		
 		override public function publish ( data : ABCData ) : void {
-			data.writeU32 ( _abcNamespaceIndex );
-			data.writeU32 ( _abcNameIndex );
+			data.writeBytes ( this.data );
 		}
 		
 		override public function toString():String

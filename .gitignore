@@ -1,0 +1,12 @@
+.actionscriptProperties
+.flexProperties
+.project
+.settings
+bin-debug/
+src/as3abc-app.xml
+src/as3abc.mxml
+src/com/codeazur/as3swf/
+src/com/codeazur/utils/BitArray.as
+src/com/codeazur/utils/HalfPrecisionWriter.as
+src/com/codeazur/utils/HexUtils.as
+src/c1801/

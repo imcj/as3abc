@@ -13,6 +13,7 @@ package com.codeazur.as3abc.data
 		public var parameters:Vector.<Parameter>;
 		public var returnType:IMultiname;
 		public var name:String;
+		public var flags : int;
 		public var needsArguments:Boolean;
 		public var needsActivation:Boolean;
 		public var needsRest:Boolean;
@@ -20,27 +21,37 @@ package com.codeazur.as3abc.data
 		public var setsDXNS:Boolean;
 		public var hasParameterNames:Boolean;
 		public var body:MethodBody;
+		
+		private var _parameterCount : int;
+		private var _optionalCount  : int;
+		private var _u32ReturnType : int;
+		private var _u32Parameters : Array = new Array ();
+		private var _u32Name : int;
+		private var _u32ParameterNames : Array = new Array ();
+		
 				
 		public function parse(data:ABCData, constantPool:ConstantPool):void
 		{
 			var i:int;
-			var paramCount:int = data.readU32();
-			var optionalCount:int;
 			var parameter:Parameter;
-			var flags:int;
 			var valueIndex:int;
-			
-			returnType = constantPool.multinames[data.readU32()];
+			var u32param : int;
+			var u32ParameterName : int;
+			_parameterCount = data.readU32();
+			_u32ReturnType = data.readU32();
+			returnType = constantPool.multinames[_u32ReturnType];
 			
 			parameters = new Vector.<Parameter>();
 			
-			for (i = 0; i < paramCount; i++) {
+			for (i = 0; i < _parameterCount; i++) {
+				u32param = data.readU32();
 				parameter = new Parameter();
-				parameter.type = constantPool.multinames[data.readU32()];
-				parameters[i] = parameter;	
+				parameter.type = constantPool.multinames[u32param];
+				parameters[i] = parameter;
+				_u32Parameters[i] = u32param;
 			}
-			
-			name = constantPool.strings[data.readU32()];
+			_u32Name = data.readU32();
+			name = constantPool.strings[_u32Name];
 			
 			flags = data.readUnsignedByte();
 			needsArguments =        Boolean(flags & 0x01);
@@ -52,13 +63,13 @@ package com.codeazur.as3abc.data
 			
 			if (hasOptionalParameters) {
 
-				optionalCount = data.readU32();
+				_optionalCount = data.readU32();
 				
-				if (optionalCount > paramCount) {
+				if (_optionalCount > _parameterCount) {
 					throw new Error("Optional parameter count is greater than formal parameter count.");
 				}
 				
-				for (i = paramCount - optionalCount; i < paramCount; ++i) {				
+				for (i = _parameterCount - _optionalCount; i < _parameterCount; ++i) {				
 					parameter = parameters[i];
 					parameter.isOptional = true;
 					
@@ -69,14 +80,39 @@ package com.codeazur.as3abc.data
 						parameter.optionalType,
 						valueIndex
 					);
+					parameter.u32Value = valueIndex;
 				}	
 			}
 			
 			if (hasParameterNames) {
-				for (i = 0; i < paramCount; ++i) {
-					parameters[i].name = constantPool.strings[data.readU32()];
+				for (i = 0; i < _parameterCount; ++i) {
+					u32ParameterName = data.readU32();
+					parameters[i].name = constantPool.strings[u32ParameterName];
 				}
 			}
+		}
+		
+		public function publish ( data : ABCData ) : void {
+			data.writeU32 ( _parameterCount );
+			data.writeU32 ( _u32ReturnType );
+			var i : int, len : int = _parameterCount;
+			for ( i; i < len; i++ )
+				data.writeU32 ( _u32Parameters[i] );
+			data.writeU32 ( _u32Name );
+			data.writeByte ( flags );
+			
+			if ( hasOptionalParameters ) {
+				data.writeU32 ( _optionalCount );
+				
+				for (i = _parameterCount - _optionalCount; i < _parameterCount; ++i) {
+					parameters[i].publish ( data );
+				}
+			}
+			
+			if ( hasParameterNames )
+				for ( i = 0; i < _parameterCount; i++ )
+					data.writeU32 ( _u32ParameterNames[i] );
+				
 		}
 		
 		public function toString(indent:uint = 0):String {
